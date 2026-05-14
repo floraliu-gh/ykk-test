@@ -21,7 +21,7 @@ line_bot_api = LineBotApi(os.getenv("LINE_CHANNEL_ACCESS_TOKEN"))
 handler = WebhookHandler(os.getenv("LINE_CHANNEL_SECRET"))
 
 # Google Sheet CSV
-SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/1OS7fRHSzIoJlVymXFp_A06p1Wj0G719-EiPRPpV0_tg/export?format=csv"
+SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/1KmHcMwAeqv3wayJGjroBva3JAjt9SHcGdzbSgWYREUo/export?format=csv"
 
 # ========= 快取設定 =========
 SHEET_CACHE = []
