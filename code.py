@@ -148,52 +148,54 @@ def handle_text(event):
                 has_audio = bool(data.get("audio", '').strip())
                 
                 if len(valid_urls) == 1:
-                    msgs.append(
-                        ImageSendMessage(
-                            original_content_url=valid_urls[0],
-                            preview_image_url=valid_urls[0]
-                        )
+                msgs.append(
+                    ImageSendMessage(
+                        original_content_url=valid_urls[0],
+                        preview_image_url=valid_urls[0]
                     )
+                )
                 elif len(valid_urls) > 1:
-                    # 超過1張圖，啟動輪播模式！最多可以塞 10 張圖在同一個泡泡裡
+                # 超過1張圖，啟動輪播模式！最多可以塞 10 張圖在同一個泡泡裡
                     columns = []
-                    for u in valid_urls[:10]:
-                        columns.append(
-                            ImageCarouselColumn(
-                                image_url=u,
-                                action=URIAction(
-                                    label='查看大圖',
-                                    uri=u
-                                )
+                for u in valid_urls[:10]:
+                    columns.append(
+                        ImageCarouselColumn(
+                            image_url=u,
+                            action=URIAction(
+                                label='查看大圖',
+                                uri=u
                             )
                         )
+                    )
                     msgs.append(
                         TemplateSendMessage(
+                            alt_text='請在手機上查看多張圖片輪播！', 
                             template=ImageCarouselTemplate(columns=columns)
-                        )
                     )
+                )
 
-                if has_episode:
-                    msgs.append(TextSendMessage(text=data['episode'].strip()))
+            if has_episode:
+                msgs.append(TextSendMessage(text=data['episode'].strip()))
                 
-                if not msgs and not has_audio:
-                    return
-
-                if has_audio:
-                    duration = get_audio_duration_ms(data["audio"].strip())
-                    msgs.append(AudioSendMessage(
-                        original_content_url=data["audio"].strip(),
-                        duration=duration
-                    ))
-
-                try:
-                    line_bot_api.reply_message(event.reply_token, msgs)
-                except Exception as e:
-                    line_bot_api.reply_message(
-                        event.reply_token,
-                        TextSendMessage(text=f"LINE 拒絕傳送！錯誤：\n{str(e)}")
-                    )
+            if not msgs:
                 return
+            
+            if has_audio:
+                duration = get_audio_duration_ms(data["audio"].strip())
+                msgs.append(AudioSendMessage(
+                    original_content_url=data["audio"].strip(),
+                    duration=duration
+                ))
+
+            # --- 最重要的防護罩，絕對不能漏掉！ ---
+            try:
+                line_bot_api.reply_message(event.reply_token, msgs)
+            except Exception as e:
+                line_bot_api.reply_message(
+                    event.reply_token,
+                    TextSendMessage(text=f"LINE 拒絕傳送！錯誤：\n{str(e)}")
+                )
+            return
 
         line_bot_api.reply_message(
             event.reply_token,
@@ -226,24 +228,24 @@ def handle_text(event):
                             preview_image_url=valid_urls[0]
                         )
                     )
-                elif len(valid_urls) > 1:
-                    # 超過1張圖，啟動輪播模式！最多可以塞 10 張圖在同一個泡泡裡
-                    columns = []
-                    for u in valid_urls[:10]:
-                        columns.append(
-                            ImageCarouselColumn(
-                                image_url=u,
-                                action=URIAction(
-                                    label='查看大圖',
-                                    uri=u
+            elif len(valid_urls) > 1:
+                columns = []
+                for u in valid_urls[:10]:
+                    columns.append(
+                        ImageCarouselColumn(
+                            image_url=u,
+                            action=URIAction(
+                                label='查看大圖',
+                                uri=u
                                 )
                             )
                         )
                     msgs.append(
                         TemplateSendMessage(
+                            alt_text='請在手機上查看多張圖片輪播！', 
                             template=ImageCarouselTemplate(columns=columns)
-                        )
                     )
+                )
 
             if has_episode:
                 msgs.append(TextSendMessage(text=data['episode'].strip()))
