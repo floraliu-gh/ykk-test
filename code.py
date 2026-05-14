@@ -16,7 +16,6 @@ import random
 import os, requests, csv, traceback, time
 from io import StringIO
 import tempfile
-from mutagen import File as MutagenFile
 from collections import OrderedDict
 
 app = Flask(__name__)
@@ -58,8 +57,6 @@ def get_sheet_rows():
 
 
 def get_audio_duration_ms(url):
-    """回傳假長度，跳過下載過程"""
-    # 如果你有快取就回傳快取
     if url in AUDIO_DURATION_CACHE:
         return AUDIO_DURATION_CACHE[url]
     return 3000
@@ -130,7 +127,6 @@ def ping():
 def handle_text(event):
     user_id = event.source.user_id
     user_input = event.message.text.strip()
-
     last_results = user_cache.get(user_id, [])
 
     # ===== 數字選擇圖片 =====
@@ -148,25 +144,24 @@ def handle_text(event):
                 has_audio = bool(data.get("audio", '').strip())
                 
                 if len(valid_urls) == 1:
-                msgs.append(
-                    ImageSendMessage(
-                        original_content_url=valid_urls[0],
-                        preview_image_url=valid_urls[0]
-                    )
-                )
-                elif len(valid_urls) > 1:
-                # 超過1張圖，啟動輪播模式！最多可以塞 10 張圖在同一個泡泡裡
-                    columns = []
-                for u in valid_urls[:10]:
-                    columns.append(
-                        ImageCarouselColumn(
-                            image_url=u,
-                            action=URIAction(
-                                label='查看大圖',
-                                uri=u
-                            )
+                    msgs.append(
+                        ImageSendMessage(
+                            original_content_url=valid_urls[0],
+                            preview_image_url=valid_urls[0]
                         )
                     )
+                elif len(valid_urls) > 1:
+                    columns = []
+                    for u in valid_urls[:10]:
+                        columns.append(
+                            ImageCarouselColumn(
+                                image_url=u,
+                                action=URIAction(
+                                    label='查看大圖',
+                                    uri=u
+                                )
+                            )
+                        )
                     msgs.append(
                         TemplateSendMessage(
                             alt_text='請在手機上查看多張圖片輪播！', 
@@ -222,12 +217,12 @@ def handle_text(event):
             has_audio = bool(data.get("audio", '').strip())
             
             if len(valid_urls) == 1:
-                    msgs.append(
-                        ImageSendMessage(
-                            original_content_url=valid_urls[0],
-                            preview_image_url=valid_urls[0]
-                        )
+                msgs.append(
+                    ImageSendMessage(
+                        original_content_url=valid_urls[0],
+                        preview_image_url=valid_urls[0]
                     )
+                )
             elif len(valid_urls) > 1:
                 columns = []
                 for u in valid_urls[:10]:
@@ -237,13 +232,13 @@ def handle_text(event):
                             action=URIAction(
                                 label='查看大圖',
                                 uri=u
-                                )
                             )
                         )
-                    msgs.append(
-                        TemplateSendMessage(
-                            alt_text='請在手機上查看多張圖片輪播！', 
-                            template=ImageCarouselTemplate(columns=columns)
+                    )
+                msgs.append(
+                    TemplateSendMessage(
+                        alt_text='請在手機上查看多張圖片輪播！', 
+                        template=ImageCarouselTemplate(columns=columns)
                     )
                 )
 
