@@ -7,6 +7,10 @@ from linebot.models import (
     TextSendMessage,
     ImageSendMessage,
     AudioSendMessage,
+    TemplateSendMessage,      
+    ImageCarouselTemplate,    
+    ImageCarouselColumn,      
+    URIAction
 )
 import random
 import os, requests, csv, traceback, time
@@ -143,15 +147,29 @@ def handle_text(event):
                 has_episode = bool(data.get('episode', '').strip())
                 has_audio = bool(data.get("audio", '').strip())
                 
-                max_images = 5
-                if has_episode: max_images -= 1
-                if has_audio: max_images -= 1
-
-                for u in valid_urls[:max_images]:
+                if len(valid_urls) == 1:
                     msgs.append(
                         ImageSendMessage(
-                            original_content_url=u,
-                            preview_image_url=u
+                            original_content_url=valid_urls[0],
+                            preview_image_url=valid_urls[0]
+                        )
+                    )
+                elif len(valid_urls) > 1:
+                    # 超過1張圖，啟動輪播模式！最多可以塞 10 張圖在同一個泡泡裡
+                    columns = []
+                    for u in valid_urls[:10]:
+                        columns.append(
+                            ImageCarouselColumn(
+                                image_url=u,
+                                action=URIAction(
+                                    label='查看大圖',
+                                    uri=u
+                                )
+                            )
+                        )
+                    msgs.append(
+                        TemplateSendMessage(
+                            template=ImageCarouselTemplate(columns=columns)
                         )
                     )
 
@@ -201,17 +219,32 @@ def handle_text(event):
             has_episode = bool(data.get('episode', '').strip())
             has_audio = bool(data.get("audio", '').strip())
             
-            max_images = 5
-            if has_episode: max_images -= 1
-            if has_audio: max_images -= 1
-
-            for u in valid_urls[:max_images]:
-                msgs.append(
-                    ImageSendMessage(
-                        original_content_url=u,
-                        preview_image_url=u
+            if len(valid_urls) == 1:
+                    msgs.append(
+                        ImageSendMessage(
+                            original_content_url=valid_urls[0],
+                            preview_image_url=valid_urls[0]
+                        )
                     )
-                )
+                elif len(valid_urls) > 1:
+                    # 超過1張圖，啟動輪播模式！最多可以塞 10 張圖在同一個泡泡裡
+                    columns = []
+                    for u in valid_urls[:10]:
+                        columns.append(
+                            ImageCarouselColumn(
+                                image_url=u,
+                                action=URIAction(
+                                    label='查看大圖',
+                                    uri=u
+                                )
+                            )
+                        )
+                    msgs.append(
+                        TemplateSendMessage(
+                            template=ImageCarouselTemplate(columns=columns)
+                        )
+                    )
+
             if has_episode:
                 msgs.append(TextSendMessage(text=data['episode'].strip()))
                 
